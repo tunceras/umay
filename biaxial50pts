@@ -1,0 +1,100 @@
+import numpy as np
+
+#50 atoms
+Espec0 = np.loadtxt('Stretching_0_0_50Atoms.dat')
+Espec1 = np.loadtxt('Stretching_5_5_50Atoms.dat')
+Espec2 = np.loadtxt('Stretching_10_10_50Atoms.dat') 
+Espec3 = np.loadtxt('Stretching_15_15_50Atoms.dat') 
+Espec4 = np.loadtxt('Stretching_20_20_50Atoms.dat') 
+
+Espec0 = [i[1] for i in Espec0]
+Espec1 = [i[1] for i in Espec1]
+Espec2 = [i[1] for i in Espec2]
+Espec3 = [i[1] for i in Espec3]
+Espec4 = [i[1] for i in Espec4]
+
+kB = 1
+
+e0 = np.reshape(Espec0, (200, 231)) 
+e1 = np.reshape(Espec1, (200, 231)) 
+e2 = np.reshape(Espec2, (200, 231)) 
+e3 = np.reshape(Espec3, (200, 231)) 
+e4 = np.reshape(Espec4, (200, 231)) 
+
+
+I = np.ones((200, 231))
+
+Tc_values = np.linspace(0, 300, 300)
+Th=300
+
+
+def alleff(E1, E2): #E1 buyuk
+    effvalues = [] 
+    for i in range(len(Tc_values)):
+        Tc=Tc_values[i]
+        betah=1/(kB*Th)
+        betac=1/(kB*Tc)
+        Pc = 1 / (I + np.exp(betac * E1))
+        Ph = 1 / (I + np.exp(betah * E2))
+        Qin = np.sum(np.multiply(E2, np.subtract(Ph, Pc)))
+        Qout = np.sum(np.multiply(E1, np.subtract(Pc, Ph)))
+        Win=np.sum(np.multiply(Ph,(np.subtract(E1,E2))))
+        Wout=np.sum(np.multiply(Pc,(np.subtract(E2,E1))))
+        Woutput=np.sum(np.multiply(np.subtract(E2,E1),np.subtract(Ph,Pc)))
+        if Woutput>0:
+            eff = (Qin+Qout) / Qin 
+            effvalues.append([Tc / Th, eff])
+    return effvalues
+
+eff_values1 = alleff(e1, e0) 
+eff_values2 = alleff(e2, e0)
+eff_values3 = alleff(e3, e0)
+eff_values4 = alleff(e4, e0)
+
+import matplotlib.pyplot as plt
+
+#plt.set_title('$\eta$=Woutput/Qin, $\epsilon_h$<$\epsilon_c$, all')
+
+from matplotlib.lines import Line2D
+
+legend_labels = ['(5%,5%)', '(10%,10%)', '(15%,15%)', '(20%,20%)']
+
+legend_handles = [
+    Line2D([0], [0], color='b', linestyle='-', linewidth=1, marker='o', markersize=7),
+    Line2D([0], [0], color='r', linestyle='-', linewidth=1, marker='^', markersize=7),
+    Line2D([0], [0], color='g', linestyle='-', linewidth=1, marker='d', markersize=7),
+    Line2D([0], [0], color='m', linestyle='-', linewidth=1, marker='*', markersize=7),
+]
+
+for i in range(0,len(eff_values1),10):
+    plt.plot(eff_values1[i][0], eff_values1[i][1], 'bo',  linestyle='-',linewidth=1,marker='o',markersize=7)
+
+for i in range(0,len(eff_values2),10):
+    plt.plot(eff_values2[i][0], eff_values2[i][1], 'ro', linestyle='-',linewidth=1,marker='^',markersize=7)
+    
+for i in range(0,len(eff_values3),10):
+    plt.plot(eff_values3[i][0], eff_values3[i][1], 'go',linestyle='-',linewidth=1,marker='d',markersize=7)
+
+for i in range(0,len(eff_values4),10):
+    plt.plot(eff_values4[i][0], eff_values4[i][1], 'mo',linestyle='-',linewidth=1,marker='*',markersize=7)
+    
+plt.plot([eff_values1[i][0] for i in range(0, len(eff_values1), 10)],
+         [eff_values1[i][1] for i in range(0, len(eff_values1), 10)], 'b-')
+plt.plot([eff_values2[i][0] for i in range(0, len(eff_values2), 10)],
+         [eff_values2[i][1] for i in range(0, len(eff_values2), 10)], 'r-')
+plt.plot([eff_values3[i][0] for i in range(0, len(eff_values3), 10)],
+         [eff_values3[i][1] for i in range(0, len(eff_values3), 10)], 'g-')
+plt.plot([eff_values4[i][0] for i in range(0, len(eff_values4), 10)],
+         [eff_values4[i][1] for i in range(0, len(eff_values4), 10)], 'm-')
+
+#plt.set_xlim(-0.02,0.8)
+plt.yticks([0, 0.05, 0.10, 0.15 ,0.2, 0.25, 0.30, 0.35])
+plt.ylim(0.0,0.25)
+plt.xlabel('Tc/Th',fontsize=25)
+plt.ylabel(r'$\eta$',fontsize=25)
+plt.legend(legend_handles, legend_labels, loc='upper right', fontsize=20, framealpha=0.7)
+
+plt.xticks([0, 0.2, 0.4, 0.6, 0.8,1])
+plt.xticks(fontsize=25)
+plt.yticks(fontsize=25)
+
